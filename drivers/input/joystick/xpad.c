@@ -1109,15 +1109,6 @@ static int xpad_init_ff(struct usb_xpad *xpad) { return 0; }
 static int xpad_send_ff(struct usb_xpad *xpad, int strong, int weak) { return 0; }
 #endif
 
-#if defined(CONFIG_JOYSTICK_XPAD_LEDS)
-#include <linux/leds.h>
-
-struct xpad_led {
-	char name[16];
-	struct led_classdev led_cdev;
-	struct usb_xpad *xpad;
-};
-
 static void xpad_send_led_command(struct usb_xpad *xpad, int command)
 {
 	unsigned char *odata;
@@ -1167,6 +1158,15 @@ static void xpad_send_led_command(struct usb_xpad *xpad, int command)
 	}
 	spin_unlock_irqrestore(&xpad->odata_lock, flags);
 }
+
+#if defined(CONFIG_JOYSTICK_XPAD_LEDS)
+#include <linux/leds.h>
+
+struct xpad_led {
+	char name[16];
+	struct led_classdev led_cdev;
+	struct usb_xpad *xpad;
+};
 
 static void xpad_led_set(struct led_classdev *led_cdev,
 			 enum led_brightness value)
