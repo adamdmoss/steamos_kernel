@@ -897,14 +897,11 @@ static void xpad_deinit_output(struct usb_xpad *xpad)
 #ifdef CONFIG_JOYSTICK_XPAD_FF
 static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect *effect)
 {
-	int retval = 0;
 	struct usb_xpad *xpad = input_get_drvdata(dev);
 
 	if (effect->type == FF_RUMBLE) {
 		__u16 strong = effect->u.rumble.strong_magnitude;
 		__u16 weak = effect->u.rumble.weak_magnitude;
-
-		spin_lock(&xpad->odata_lock);
 
 		switch (xpad->xtype) {
 
@@ -917,8 +914,7 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 			xpad->odata[5] = weak / 256;	/* right actuator */
 			xpad->irq_out->transfer_buffer_length = 6;
 
-			retval = usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-			break;
+			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
 
 		case XTYPE_XBOX360:
 			xpad->odata[0] = 0x00;
@@ -931,8 +927,7 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 			xpad->odata[7] = 0x00;
 			xpad->irq_out->transfer_buffer_length = 8;
 
-			retval = usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-			break;
+			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
 
 		case XTYPE_XBOX360W:
 			xpad->odata[0] = 0x00;
@@ -949,8 +944,7 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 			xpad->odata[11] = 0x00;
 			xpad->irq_out->transfer_buffer_length = 12;
 
-			retval = usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-			break;
+			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
 
 		case XTYPE_XBOXONE:
 			xpad->odata[0] = 0x09;
@@ -968,21 +962,17 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 			xpad->odata[12] = 0x00;
 			xpad->irq_out->transfer_buffer_length = 13;
 
-			retval = usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
-			break;
+			return usb_submit_urb(xpad->irq_out, GFP_ATOMIC);
 
 		default:
 			dev_dbg(&xpad->dev->dev,
 				"%s - rumble command sent to unsupported xpad type: %d\n",
 				__func__, xpad->xtype);
-			retval = -1;
-			break;
+			return -1;
 		}
-
-		spin_unlock(&xpad->odata_lock);
 	}
 
-	return retval;
+	return 0;
 }
 
 static int xpad_init_ff(struct usb_xpad *xpad)
